@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-package vactracker;
 option go_package="vactracker";
 
 message Employee {
