@@ -5,6 +5,7 @@ import (
     "net"
     "errors"
     "fmt"
+    "io"
     pb "../pb"
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
@@ -12,6 +13,7 @@ import (
 )
 
 const port = ":6000"
+var nextId int32 = 1
 
 type employeeService struct{}
 
@@ -37,10 +39,61 @@ func(s *employeeService) GetAll(req *pb.GetAllRequest, stream pb.EmployeeService
     return nil
 }
 
+// func(s *employeeService) AddPhoto(stream pb.EmployeeService_AddPhotoServer) (error){
+//     if md, ok := metadata.FromContext(ctx); ok{
+//         fmt.Println("Receiveing photo for badge number: %v\n", md["badgenumber"][0])
+//     }
+
+//     imgData := []byte{}
+//     for{
+//         data, err := stream.Recv()
+//         if err == io.EOF{
+//             fmt.Println("File received with lenght %v\n", len(imgData))
+//             return stream.SendAndClose()
+//         }
+
+//         if err != nil {
+//             return err
+//         }
+//         imgData = append(imgData, data)
+//     }
+
+//     return nil
+// }
+
+func GetNextEmployeeId() (nextId int32){
+     nextId++
+     return
+}
+
 func (s *employeeService) Save(ctx context.Context, req *pb.EmployeeRequest) (*pb.EmployeeResponse, error){
-    return nil, nil
+    employee := req.Employee
+    if(employee.Id == 0){
+        employee.Id = GetNextEmployeeId()
+    }
+
+    employees = append(employees, *employee)
+
+    return &pb.EmployeeResponse{Employee:employee}, nil
 }
 func (s *employeeService) SaveAll(stream pb.EmployeeService_SaveAllServer) error{
+    for{
+        emp, err := stream.Recv()
+        if err == io.EOF {
+            break;
+        }
+
+        if err != nil {
+             return err
+        }
+
+        employees = append(employees, *emp.Employee)
+        stream.Send(&pb.EmployeeResponse{Employee: emp.Employee})
+    }
+
+    for _, e := range employees{
+        fmt.Println(e)
+    }
     return nil
 }
 
