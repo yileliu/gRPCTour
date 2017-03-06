@@ -13,7 +13,7 @@ import (
 )
 
 const port = ":6000"
-var nextId int32 = 1
+var nextId int32 = 100
 
 type employeeService struct{}
 
@@ -24,6 +24,7 @@ func(s *employeeService) GetByBadgeNumber(ctx context.Context, req *pb.GetByBadg
 
     for _, e := range employees{
         if(req.BadgeNumber == e.BadgeNumber){
+            fmt.Println("Employee found: %v\n", e)
             return &pb.EmployeeResponse{Employee: &e}, nil
         }
     }
