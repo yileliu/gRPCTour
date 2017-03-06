@@ -35,6 +35,8 @@ func main() {
 		GetByBadgeNumber(client)
 	case 3:
 		GetAll(client)
+	case 4:
+		SaveAll(client)
 	}
 }
 
@@ -81,4 +83,59 @@ func GetAll(client pb.EmployeeServiceClient) {
 
 		fmt.Println(emp.Employee)
 	}
+}
+
+func SaveAll(client pb.EmployeeServiceClient) {
+	newEmployees := []pb.Employee{
+		pb.Employee{
+			BadgeNumber:         229,
+			FirstName:           "Amity",
+			LastName:            "Fuller",
+			VacationAccrualRate: 2.3,
+			VacationAccrued:     23.4,
+		},
+		pb.Employee{
+			BadgeNumber:         230,
+			FirstName:           "Amity",
+			LastName:            "Fuller",
+			VacationAccrualRate: 2.3,
+			VacationAccrued:     23.4,
+		},
+	}
+
+	stream, err := client.SaveAll(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	doneCh := make(chan struct{})
+
+	go (func() {
+		for {
+			res, err := stream.Recv()
+
+			if err == io.EOF {
+				doneCh <- struct{}{}
+				break
+			}
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(res.Employee)
+		}
+	})()
+
+	for _, e := range newEmployees {
+		err := stream.Send(&pb.EmployeeRequest{Employee: &e})
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	stream.CloseSend()
+
+	<-doneCh
 }
