@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io"
 	"log"
 
 	"fmt"
@@ -32,6 +33,8 @@ func main() {
 		SendMetadata(client)
 	case 2:
 		GetByBadgeNumber(client)
+	case 3:
+		GetAll(client)
 	}
 }
 
@@ -58,4 +61,24 @@ func GetByBadgeNumber(client pb.EmployeeServiceClient) {
 	}
 
 	fmt.Println(res)
+}
+
+func GetAll(client pb.EmployeeServiceClient) {
+	stream, err := client.GetAll(context.Background(), &pb.GetAllRequest{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		emp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(emp.Employee)
+	}
 }
