@@ -96,7 +96,7 @@ func (s *employeeService) SaveAll(stream pb.EmployeeService_SaveAllServer) error
 		}
 
 		fmt.Println(emp.Employee)
-		//employees = append(employees, *emp.Employee)
+		employees = append(employees, *emp.Employee)
 		err = stream.Send(&pb.EmployeeResponse{Employee: emp.Employee})
 
 		if err != nil {
